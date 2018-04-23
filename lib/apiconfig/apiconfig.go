@@ -59,6 +59,7 @@ type EtcdConfig struct {
 	EtcdKeyFile    string `json:"etcdKeyFile" envconfig:"ETCD_KEY_FILE"`
 	EtcdCertFile   string `json:"etcdCertFile" envconfig:"ETCD_CERT_FILE"`
 	EtcdCACertFile string `json:"etcdCACertFile" envconfig:"ETCD_CA_CERT_FILE"`
+	EtcdKeyPrefix  string `json:"etcdKeyPrefix" envconfig:"ETCD_KEY_PREFIX"`
 }
 
 type KubeConfig struct {

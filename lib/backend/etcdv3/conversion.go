@@ -16,6 +16,7 @@ package etcdv3
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -31,7 +32,7 @@ import (
 // or if value cannot be parsed, this method returns nil.
 func convertListResponse(ekv *mvccpb.KeyValue, l model.ListInterface) *model.KVPair {
 	log.WithField("etcdv3-etcdKey", string(ekv.Key)).Debug("Processing etcdv3 entry")
-	if k := l.KeyFromDefaultPath(string(ekv.Key)); k != nil {
+	if k := l.KeyFromDefaultPath(strings.TrimPrefix(string(ekv.Key), keyPrefix)); k != nil {
 		log.WithField("model-etcdKey", k).Debug("Key is valid and converted to model-etcdKey")
 		if v, err := model.ParseValue(k, ekv.Value); err == nil {
 			log.Debug("Value is valid - return KVPair with parsed value")
@@ -58,7 +59,7 @@ func convertWatchEvent(e *clientv3.Event, l model.ListInterface) (*api.WatchEven
 
 	var old, new *model.KVPair
 	var err error
-	if k := l.KeyFromDefaultPath(string(e.Kv.Key)); k != nil {
+	if k := l.KeyFromDefaultPath(strings.TrimPrefix(string(e.Kv.Key), keyPrefix)); k != nil {
 		log.WithField("model-etcdKey", k).Debug("Key is valid and converted to model-etcdKey")
 
 		if eventType != api.WatchDeleted {

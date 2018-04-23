@@ -100,7 +100,7 @@ func (wc *watcher) watchLoop() {
 	opts := []clientv3.OpOption{clientv3.WithRev(wc.initialRev + 1), clientv3.WithPrevKV()}
 
 	// If we are not watching a specific resource then this is a prefix watch.
-	key := model.ListOptionsToDefaultPathRoot(wc.list)
+	key := keyPrefix + model.ListOptionsToDefaultPathRoot(wc.list)
 	logCxt := log.WithFields(log.Fields{
 		"etcdv3-key": key,
 		"rev":        wc.initialRev,

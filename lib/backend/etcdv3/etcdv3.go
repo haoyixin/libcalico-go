@@ -36,6 +36,7 @@ var (
 	clientTimeout    = 10 * time.Second
 	keepaliveTime    = 30 * time.Second
 	keepaliveTimeout = 10 * time.Second
+	keyPrefix        = "/qihoo.cloud/network"
 )
 
 type etcdV3Client struct {
@@ -84,6 +85,13 @@ func NewEtcdV3Client(config *apiconfig.EtcdConfig) (api.Client, error) {
 	client, err := clientv3.New(cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	if config.EtcdKeyPrefix != "" {
+		if !strings.HasPrefix(config.EtcdKeyPrefix, "/") || strings.HasSuffix(config.EtcdKeyPrefix, "/") {
+			return nil, fmt.Errorf("key prefix must start with '/' and end without '/'")
+		}
+		keyPrefix = config.EtcdKeyPrefix
 	}
 
 	return &etcdV3Client{etcdClient: client}, nil
@@ -245,6 +253,7 @@ func (c *etcdV3Client) Delete(ctx context.Context, k model.Key, revision string)
 	if err != nil {
 		return nil, err
 	}
+	key = keyPrefix + key
 	logCxt = logCxt.WithField("etcdv3-etcdKey", key)
 
 	conds := []clientv3.Cmp{}
@@ -310,6 +319,7 @@ func (c *etcdV3Client) Get(ctx context.Context, k model.Key, revision string) (*
 		logCxt.Error("Unable to convert model.Key to an etcdv3 etcdKey")
 		return nil, err
 	}
+	key = keyPrefix + key
 	logCxt = logCxt.WithField("etcdv3-etcdKey", key)
 
 	ops := []clientv3.OpOption{}
@@ -367,6 +377,7 @@ func (c *etcdV3Client) List(ctx context.Context, l model.ListInterface, revision
 		}
 		ops = append(ops, clientv3.WithPrefix())
 	}
+	key = keyPrefix + key
 	logCxt = logCxt.WithField("etcdv3-etcdKey", key)
 
 	// We may also need to perform a get based on a particular revision.
@@ -411,7 +422,7 @@ func (c *etcdV3Client) EnsureInitialized() error {
 func (c *etcdV3Client) Clean() error {
 	log.Warning("Cleaning etcdv3 datastore of all Calico data")
 	_, err := c.etcdClient.Txn(context.Background()).If().Then(
-		clientv3.OpDelete("/calico/", clientv3.WithPrefix()),
+		clientv3.OpDelete(keyPrefix+"/calico/", clientv3.WithPrefix()),
 	).Commit()
 
 	if err != nil {
@@ -425,7 +436,7 @@ func (c *etcdV3Client) Clean() error {
 // direct consumers of the backend API to access this.
 func (c *etcdV3Client) IsClean() (bool, error) {
 	log.Debug("Calling Get on etcdv3 client")
-	resp, err := c.etcdClient.Get(context.Background(), "/calico/", clientv3.WithPrefix())
+	resp, err := c.etcdClient.Get(context.Background(), keyPrefix+"/calico/", clientv3.WithPrefix())
 	if err != nil {
 		log.WithError(err).Info("Error returned from etcdv3 client")
 		return false, cerrors.ErrorDatastoreError{Err: err}
@@ -473,7 +484,7 @@ func getKeyValueStrings(d *model.KVPair) (string, string, error) {
 		}
 	}
 
-	return key, string(bytes), nil
+	return keyPrefix + key, string(bytes), nil
 }
 
 // parseRevision parses the model.KVPair revision string and converts to the
