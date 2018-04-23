@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	blockSize = 64
+	blockSize = 32
 )
 
 type ipVersion struct {
@@ -41,8 +41,8 @@ type ipVersion struct {
 var ipv4 ipVersion = ipVersion{
 	Number:            4,
 	TotalBits:         32,
-	BlockPrefixLength: 26,
-	BlockPrefixMask:   net.CIDRMask(26, 32),
+	BlockPrefixLength: 27,
+	BlockPrefixMask:   net.CIDRMask(27, 32),
 }
 
 var ipv6 ipVersion = ipVersion{

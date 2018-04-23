@@ -92,7 +92,7 @@ var _ = testutils.E2eDatastoreDescribe("IPAM tests", testutils.DatastoreEtcdV3, 
 	ic := NewIPAMClient(bc, ipPools)
 
 	// We're assigning one IP which should be from the only ipPool created at the time, second one
-	// should be from the same /26 block since they're both from the same host, then delete
+	// should be from the same /27 block since they're both from the same host, then delete
 	// the ipPool and create a new ipPool, and AutoAssign 1 more IP for the same host - expect the
 	// assigned IP to be from the new ipPool that was created, this is to make sure the assigned IP
 	// doesn't come from the old affinedBlock even after the ipPool was deleted.
@@ -412,15 +412,15 @@ var _ = testutils.E2eDatastoreDescribe("IPAM tests", testutils.DatastoreEtcdV3, 
 		// Test 4: AutoAssign 0 IPv4, 257 IPv6 - expect 256 IPv6 addresses, no IPv6, and no error.
 		Entry("0 v4 257 v6", "testHost", true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, "192.168.1.0/24", 0, 257, 0, 256, nil),
 
-		// Test 5: (use pool of size /25 so only two blocks are contained):
+		// Test 5: (use pool of size /26 so only two blocks are contained):
 		// - Assign 1 address on host A (Expect 1 address).
-		Entry("1 v4 0 v6 host-A", "host-A", true, []string{"10.0.0.0/25", "fd80:24e2:f998:72d6::/121"}, "10.0.0.0/25", 1, 0, 1, 0, nil),
+		Entry("1 v4 0 v6 host-A", "host-A", true, []string{"10.0.0.0/26", "fd80:24e2:f998:72d6::/121"}, "10.0.0.0/26", 1, 0, 1, 0, nil),
 
 		// - Assign 1 address on host B (Expect 1 address, different block).
-		Entry("1 v4 0 v6 host-B", "host-B", false, []string{"10.0.0.0/25", "fd80:24e2:f998:72d6::/121"}, "10.0.0.0/25", 1, 0, 1, 0, nil),
+		Entry("1 v4 0 v6 host-B", "host-B", false, []string{"10.0.0.0/26", "fd80:24e2:f998:72d6::/121"}, "10.0.0.0/26", 1, 0, 1, 0, nil),
 
-		// - Assign 64 more addresses on host A (Expect 63 addresses from host A's block, 1 address from host B's block).
-		Entry("64 v4 0 v6 host-A", "host-A", false, []string{"10.0.0.0/25", "fd80:24e2:f998:72d6::/121"}, "10.0.0.0/25", 64, 0, 64, 0, nil),
+		// - Assign 32 more addresses on host A (Expect 31 addresses from host A's block, 1 address from host B's block).
+		Entry("32 v4 0 v6 host-A", "host-A", false, []string{"10.0.0.0/26", "fd80:24e2:f998:72d6::/121"}, "10.0.0.0/26", 32, 0, 32, 0, nil),
 	)
 
 	DescribeTable("AssignIP: requested IP vs returned error",
@@ -528,10 +528,10 @@ var _ = testutils.E2eDatastoreDescribe("IPAM tests", testutils.DatastoreEtcdV3, 
 		// - ReleaseIP should return empty slice of IPs (unallocatedIPs) and no error.
 		Entry("Assign 1 IPv4 with AssignIP from a configured pool and then release it", net.IP{}, true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, net.ParseIP("192.168.1.0"), 0, []cnet.IP{}, nil),
 
-		// Test 4: Assign 66 IPs (across 2 blocks) with AutoAssign from a configured pool then release them.
+		// Test 4: Assign 34 IPs (across 2 blocks) with AutoAssign from a configured pool then release them.
 		// - Assign should not return an error.
 		// - ReleaseIPs should return an empty slice of IPs (unallocatedIPs) and no error.
-		Entry("Assign 66 IPs (across 2 blocks) with AutoAssign from a configured pool then release them", net.IP{}, true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 66, []cnet.IP{}, nil),
+		Entry("Assign 34 IPs (across 2 blocks) with AutoAssign from a configured pool then release them", net.IP{}, true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 34, []cnet.IP{}, nil),
 
 		// Test 5: Assign 1 IPv4 address with AssignIP then try to release 2 IPs.
 		// - Assign should not return no error.
@@ -572,23 +572,23 @@ var _ = testutils.E2eDatastoreDescribe("IPAM tests", testutils.DatastoreEtcdV3, 
 		},
 
 		// Test cases (ClaimAffinity):
-		// Test 1: claim affinity for an unclaimed IPNet of size 64 - expect 1 claimed blocks, 0 failed and expect no error.
-		Entry("Claim affinity for an unclaimed IPNet of size 64", testArgsClaimAff{"192.168.1.0/26", "host-A", true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 1, 0, nil}),
+		// Test 1: claim affinity for an unclaimed IPNet of size 32 - expect 1 claimed blocks, 0 failed and expect no error.
+		Entry("Claim affinity for an unclaimed IPNet of size 32", testArgsClaimAff{"192.168.1.0/27", "host-A", true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 1, 0, nil}),
 
-		// Test 2: claim affinity for an unclaimed IPNet of size smaller than 64 - expect 0 claimed blocks, 0 failed and expect an error error.
-		Entry("Claim affinity for an unclaimed IPNet of size smaller than 64", testArgsClaimAff{"192.168.1.0/27", "host-A", true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 0, 0, errors.New("The requested CIDR (192.168.1.0/27) is smaller than the minimum.")}),
+		// Test 2: claim affinity for an unclaimed IPNet of size smaller than 32 - expect 0 claimed blocks, 0 failed and expect an error error.
+		Entry("Claim affinity for an unclaimed IPNet of size smaller than 32", testArgsClaimAff{"192.168.1.0/28", "host-A", true, []string{"192.168.1.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 0, 0, errors.New("The requested CIDR (192.168.1.0/28) is smaller than the minimum.")}),
 
 		// Test 3: claim affinity for a IPNet that has an IP already assigned to another host.
 		// - Assign an IP with AssignIP to "Host-A" from a configured pool
 		// - Claim affinity for "Host-B" to the block that IP belongs to - expect 3 claimed blocks and 1 failed.
-		Entry("Claim affinity for a IPNet that has an IP already assigned to another host (Claim affinity for Host-B)", testArgsClaimAff{"10.0.0.0/24", "host-B", true, []string{"10.0.0.0/24", "fd80:24e2:f998:72d6::/120"}, net.ParseIP("10.0.0.1"), 3, 1, nil}),
+		Entry("Claim affinity for a IPNet that has an IP already assigned to another host (Claim affinity for Host-B)", testArgsClaimAff{"10.0.0.0/24", "host-B", true, []string{"10.0.0.0/24", "fd80:24e2:f998:72d6::/120"}, net.ParseIP("10.0.0.1"), 7, 1, nil}),
 
 		// Test 4: claim affinity to a block twice from different hosts.
 		// - Claim affinity to an unclaimed block for "Host-A" - expect 4 claimed blocks, 0 failed and expect no error.
-		Entry("Claim affinity to an unclaimed block for Host-A", testArgsClaimAff{"10.0.0.0/24", "host-A", true, []string{"10.0.0.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 4, 0, nil}),
+		Entry("Claim affinity to an unclaimed block for Host-A", testArgsClaimAff{"10.0.0.0/24", "host-A", true, []string{"10.0.0.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 8, 0, nil}),
 
 		// - Claim affinity to the same block again but for "host-B" this time - expect 0 claimed blocks, 4 failed and expect no error.
-		Entry("Claim affinity to the same block again but for Host-B this time", testArgsClaimAff{"10.0.0.0/24", "host-B", false, []string{"10.0.0.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 0, 4, nil}),
+		Entry("Claim affinity to the same block again but for Host-B this time", testArgsClaimAff{"10.0.0.0/24", "host-B", false, []string{"10.0.0.0/24", "fd80:24e2:f998:72d6::/120"}, net.IP{}, 0, 8, nil}),
 	)
 })
 

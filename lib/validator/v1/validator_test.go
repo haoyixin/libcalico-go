@@ -43,9 +43,9 @@ func init() {
 	ipv6_2 := net.MustParseIP("aabb::abcd")
 	netv4_1 := net.MustParseNetwork("1.2.3.4/32")
 	netv4_2 := net.MustParseNetwork("1.2.0.0/32")
-	netv4_3 := net.MustParseNetwork("1.2.3.0/26")
+	netv4_3 := net.MustParseNetwork("1.2.3.0/27")
 	netv4_4 := net.MustParseNetwork("1.2.3.4/10")
-	netv4_5 := net.MustParseNetwork("1.2.3.4/27")
+	netv4_5 := net.MustParseNetwork("1.2.3.4/28")
 	netv6_1 := net.MustParseNetwork("aabb:aabb::ffff/128")
 	netv6_2 := net.MustParseNetwork("aabb:aabb::/128")
 	netv6_3 := net.MustParseNetwork("aabb:aabb::ffff/122")
@@ -567,11 +567,11 @@ func init() {
 			}, false),
 
 		// (API) PoolMetadata
-		Entry("should accept IP pool with IPv4 CIDR /26", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv4_3}}, true),
+		Entry("should accept IP pool with IPv4 CIDR /27", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv4_3}}, true),
 		Entry("should accept IP pool with IPv4 CIDR /10", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv4_4}}, true),
 		Entry("should accept IP pool with IPv6 CIDR /122", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv6_3}}, true),
 		Entry("should accept IP pool with IPv6 CIDR /10", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv6_4}}, true),
-		Entry("should accept a disabled IP pool with IPv4 CIDR /27",
+		Entry("should accept a disabled IP pool with IPv4 CIDR /28",
 			api.IPPool{
 				Metadata: api.IPPoolMetadata{CIDR: netv4_5},
 				Spec:     api.IPPoolSpec{Disabled: true},
@@ -581,7 +581,7 @@ func init() {
 				Metadata: api.IPPoolMetadata{CIDR: netv6_1},
 				Spec:     api.IPPoolSpec{Disabled: true},
 			}, true),
-		Entry("should reject IP pool with IPv4 CIDR /27", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv4_5}}, false),
+		Entry("should reject IP pool with IPv4 CIDR /28", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv4_5}}, false),
 		Entry("should reject IP pool with IPv6 CIDR /128", api.IPPool{Metadata: api.IPPoolMetadata{CIDR: netv6_1}}, false),
 		Entry("should reject IPIP enabled IP pool for IPv6",
 			api.IPPool{

@@ -43,9 +43,9 @@ func init() {
 	ipv6_2 := "aabb::abcd"
 	netv4_1 := "1.2.3.4/32"
 	netv4_2 := "1.2.0.0/32"
-	netv4_3 := "1.2.3.0/26"
+	netv4_3 := "1.2.3.0/27"
 	netv4_4 := "1.0.0.0/10"
-	netv4_5 := "1.2.3.0/27"
+	netv4_5 := "1.2.3.0/28"
 	netv6_1 := "aabb:aabb::ffff/128"
 	netv6_2 := "aabb:aabb::/128"
 	netv6_3 := "aabb:aabb::0000/122"
@@ -655,7 +655,7 @@ func init() {
 			}, false),
 
 		// (API) IPPool
-		Entry("should accept IP pool with IPv4 CIDR /26",
+		Entry("should accept IP pool with IPv4 CIDR /27",
 			api.IPPool{ObjectMeta: v1.ObjectMeta{Name: "pool.name"},
 				Spec: api.IPPoolSpec{CIDR: netv4_3},
 			}, true),
@@ -675,7 +675,7 @@ func init() {
 					CIDR:     netv6_4,
 					IPIPMode: api.IPIPModeNever},
 			}, true),
-		Entry("should accept a disabled IP pool with IPv4 CIDR /27",
+		Entry("should accept a disabled IP pool with IPv4 CIDR /28",
 			api.IPPool{
 				ObjectMeta: v1.ObjectMeta{Name: "pool.name"},
 				Spec: api.IPPoolSpec{
@@ -690,7 +690,7 @@ func init() {
 					IPIPMode: api.IPIPModeNever,
 					Disabled: true},
 			}, true),
-		Entry("should reject IP pool with IPv4 CIDR /27", api.IPPool{ObjectMeta: v1.ObjectMeta{Name: "pool.name"}, Spec: api.IPPoolSpec{CIDR: netv4_5}}, false),
+		Entry("should reject IP pool with IPv4 CIDR /28", api.IPPool{ObjectMeta: v1.ObjectMeta{Name: "pool.name"}, Spec: api.IPPoolSpec{CIDR: netv4_5}}, false),
 		Entry("should reject IP pool with IPv6 CIDR /128", api.IPPool{ObjectMeta: v1.ObjectMeta{Name: "pool.name"}, Spec: api.IPPoolSpec{CIDR: netv6_1}}, false),
 		Entry("should reject IP pool with IPv4 CIDR /33", api.IPPool{ObjectMeta: v1.ObjectMeta{Name: "pool.name"}, Spec: api.IPPoolSpec{CIDR: "1.2.3.4/33"}}, false),
 		Entry("should reject IP pool with IPv6 CIDR /129", api.IPPool{ObjectMeta: v1.ObjectMeta{Name: "pool.name"}, Spec: api.IPPoolSpec{CIDR: "aa:bb::/129"}}, false),

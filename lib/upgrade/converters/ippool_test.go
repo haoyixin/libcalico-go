@@ -118,7 +118,7 @@ var poolTable = []struct {
 		description: "IPv4 IPPool with IPIPMode blank, should be converted to IPIPMode Always",
 		v1API: &apiv1.IPPool{
 			Metadata: apiv1.IPPoolMetadata{
-				CIDR: cnet.MustParseCIDR("5.5.5.5/25"),
+				CIDR: cnet.MustParseCIDR("5.5.5.5/26"),
 			},
 			Spec: apiv1.IPPoolSpec{
 				IPIP: &apiv1.IPIPConfiguration{
@@ -131,10 +131,10 @@ var poolTable = []struct {
 		},
 		v1KVP: &model.KVPair{
 			Key: model.IPPoolKey{
-				CIDR: cnet.MustParseCIDR("5.5.5.5/25"),
+				CIDR: cnet.MustParseCIDR("5.5.5.5/26"),
 			},
 			Value: &model.IPPool{
-				CIDR:          cnet.MustParseCIDR("5.5.5.5/25"),
+				CIDR:          cnet.MustParseCIDR("5.5.5.5/26"),
 				IPIPInterface: "",
 				IPIPMode:      "",
 				Masquerade:    true,
@@ -144,10 +144,10 @@ var poolTable = []struct {
 		},
 		v3API: apiv3.IPPool{
 			ObjectMeta: v1.ObjectMeta{
-				Name: "5-5-5-5-25",
+				Name: "5-5-5-5-26",
 			},
 			Spec: apiv3.IPPoolSpec{
-				CIDR:        "5.5.5.5/25",
+				CIDR:        "5.5.5.5/26",
 				IPIPMode:    apiv3.IPIPModeNever,
 				NATOutgoing: true,
 				Disabled:    true,
@@ -158,7 +158,7 @@ var poolTable = []struct {
 		description: "IPv4 IPPool with IPIPMode unspecified, should be converted to IPIPMode Always",
 		v1API: &apiv1.IPPool{
 			Metadata: apiv1.IPPoolMetadata{
-				CIDR: cnet.MustParseCIDR("6.6.6.6/26"),
+				CIDR: cnet.MustParseCIDR("6.6.6.6/27"),
 			},
 			Spec: apiv1.IPPoolSpec{
 				IPIP: &apiv1.IPIPConfiguration{
@@ -170,10 +170,10 @@ var poolTable = []struct {
 		},
 		v1KVP: &model.KVPair{
 			Key: model.IPPoolKey{
-				CIDR: cnet.MustParseCIDR("6.6.6.6/26"),
+				CIDR: cnet.MustParseCIDR("6.6.6.6/27"),
 			},
 			Value: &model.IPPool{
-				CIDR:       cnet.MustParseCIDR("6.6.6.6/26"),
+				CIDR:       cnet.MustParseCIDR("6.6.6.6/27"),
 				Masquerade: true,
 				Disabled:   true,
 				IPAM:       false,
@@ -181,10 +181,10 @@ var poolTable = []struct {
 		},
 		v3API: apiv3.IPPool{
 			ObjectMeta: v1.ObjectMeta{
-				Name: "6-6-6-6-26",
+				Name: "6-6-6-6-27",
 			},
 			Spec: apiv3.IPPoolSpec{
-				CIDR:        "6.6.6.6/26",
+				CIDR:        "6.6.6.6/27",
 				IPIPMode:    apiv3.IPIPModeNever,
 				NATOutgoing: true,
 				Disabled:    true,

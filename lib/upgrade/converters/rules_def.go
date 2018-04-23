@@ -33,11 +33,11 @@ var numProtocol1 = numorstring.ProtocolFromInt(240)
 var icmpType1 = 100
 var icmpCode1 = 200
 
-var cidr1StrictMaskStr = "192.168.0.128/25"
+var cidr1StrictMaskStr = "192.168.0.128/26"
 var cidr2StrictMaskStr = "20.0.0.0/24"
 var cidr3StrictMaskStr = "30.0.0.0/24"
 var cidr4StrictMaskStr = "40.0.0.0/24"
-var cidr1Str = "192.168.0.129/25"
+var cidr1Str = "192.168.0.129/26"
 var cidr2Str = "20.0.0.2/24"
 var cidr3Str = "30.0.0.3/24"
 var cidr4Str = "40.0.0.4/24"

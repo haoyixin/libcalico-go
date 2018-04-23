@@ -692,7 +692,7 @@ var _ = testutils.E2eDatastoreDescribe("IPPool tests", testutils.DatastoreAll, f
 			_, err = c.IPPools().Create(ctx, &apiv3.IPPool{
 				ObjectMeta: metav1.ObjectMeta{Name: "ippool4"},
 				Spec: apiv3.IPPoolSpec{
-					CIDR: "1.2.3.128/25",
+					CIDR: "1.2.3.128/26",
 				},
 			}, options.SetOptions{})
 			Expect(err).To(HaveOccurred())

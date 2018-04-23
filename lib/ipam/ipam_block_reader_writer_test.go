@@ -153,18 +153,18 @@ var _ = testutils.E2eDatastoreDescribe("IPAM affine block allocation tests", tes
 			hostA = "hostA"
 			hostB = "hostB"
 
-			pools = &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/26": true}}
+			pools = &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/27": true}}
 
 			ctx = context.Background()
 
-			_, net, err = cnet.ParseCIDR("10.0.0.0/26")
+			_, net, err = cnet.ParseCIDR("10.0.0.0/27")
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should handle multiple racing block affinity claims from different hosts", func() {
 			By("setting up the client for the test", func() {
 				// Pool has room for 16 blocks.
-				pls := &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/22": true}}
+				pls := &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/23": true}}
 				rw = blockReaderWriter{client: bc, pools: pls}
 				ic = &ipamClient{
 					client:            bc,
@@ -251,7 +251,7 @@ var _ = testutils.E2eDatastoreDescribe("IPAM affine block allocation tests", tes
 		It("should handle multiple racing block affinity claims from the same host", func() {
 			By("setting up the client for the test", func() {
 				// Pool has room for 16 blocks.
-				pls := &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/25": true}}
+				pls := &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/26": true}}
 				rw = blockReaderWriter{client: bc, pools: pls}
 				ic = &ipamClient{
 					client:            bc,
@@ -313,7 +313,7 @@ var _ = testutils.E2eDatastoreDescribe("IPAM affine block allocation tests", tes
 		It("should handle multiple racing claims for the same affinity", func() {
 			By("setting up the client for the test", func() {
 				// Pool has room for 16 blocks.
-				pls := &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/22": true}}
+				pls := &ipPoolAccessor{pools: map[string]bool{"10.0.0.0/23": true}}
 				rw = blockReaderWriter{client: bc, pools: pls}
 				ic = &ipamClient{
 					client:            bc,
@@ -322,7 +322,7 @@ var _ = testutils.E2eDatastoreDescribe("IPAM affine block allocation tests", tes
 				}
 
 				var err error
-				_, net, err = cnet.ParseCIDR("10.0.0.0/22")
+				_, net, err = cnet.ParseCIDR("10.0.0.0/23")
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -740,7 +740,7 @@ var _ = testutils.E2eDatastoreDescribe("IPAM affine block allocation tests", tes
 			p = &ipPoolAccessor{pools: map[string]bool{}}
 			ctx = context.Background()
 
-			_, net, err = cnet.ParseCIDR("10.1.0.0/26")
+			_, net, err = cnet.ParseCIDR("10.1.0.0/27")
 			Expect(err).NotTo(HaveOccurred())
 
 			host = "test-hostname"

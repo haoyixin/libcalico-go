@@ -299,11 +299,11 @@ func (r ipPools) validateAndSetDefaults(ctx context.Context, new, old *apiv3.IPP
 	if !new.Spec.Disabled {
 		ones, bits := cidr.Mask.Size()
 		log.Debugf("Pool CIDR: %s, num bits: %d", cidr.String(), bits-ones)
-		if bits-ones < 6 {
+		if bits-ones < 5 {
 			if cidr.Version() == 4 {
 				errFields = append(errFields, cerrors.ErroredField{
 					Name:   "IPPool.Spec.CIDR",
-					Reason: "IPv4 pool size is too small (min /26) for use with Calico IPAM",
+					Reason: "IPv4 pool size is too small (min /27) for use with Calico IPAM",
 					Value:  new.Spec.CIDR,
 				})
 			} else {
