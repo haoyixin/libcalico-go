@@ -15,6 +15,7 @@
 package etcd
 
 import (
+	"strings"
 	"time"
 
 	"math/rand"
@@ -192,7 +193,7 @@ func (syn *etcdSyncer) readSnapshotsFromEtcd(
 				"requiredIdx": minRequiredSnapshotIndex,
 				"currentIdx":  highestCompletedSnapshotIndex,
 			}).Info("Newest snapshot is too stale, loading a new one")
-			resp, err := syn.keysAPI.Get(context.Background(), "/calico/v1", &snapshotGetOpts)
+			resp, err := syn.keysAPI.Get(context.Background(), keyPrefix+"/calico/v1", &snapshotGetOpts)
 			if err != nil {
 				if syn.OneShot {
 					// One-shot mode is used to grab a snapshot and then
@@ -233,7 +234,7 @@ func sendSnapshotNode(node *client.Node, snapshotUpdates chan<- interface{}, res
 		snapshotUpdates <- snapshotUpdate{
 			snapshotIndex: resp.Index,
 			kv: kvPair{
-				key:           node.Key,
+				key:           strings.TrimPrefix(node.Key, keyPrefix),
 				value:         node.Value,
 				modifiedIndex: node.ModifiedIndex,
 			},
@@ -258,7 +259,7 @@ func (syn *etcdSyncer) watchEtcd(watcherUpdateC chan<- interface{}) {
 	for {
 		// Do a non-recursive get on the Ready flag to find out the
 		// current etcd index.  We'll trigger a snapshot/start polling from that.
-		resp, err := syn.keysAPI.Get(context.Background(), "/calico/v1/Ready", &client.GetOptions{})
+		resp, err := syn.keysAPI.Get(context.Background(), keyPrefix+"/calico/v1/Ready", &client.GetOptions{})
 		if err != nil {
 			log.WithError(err).Warn("Failed to get Ready key from etcd")
 			time.Sleep(1 * time.Second)
@@ -279,7 +280,7 @@ func (syn *etcdSyncer) watchEtcd(watcherUpdateC chan<- interface{}) {
 			AfterIndex: initialClusterIndex,
 			Recursive:  true,
 		}
-		watcher := syn.keysAPI.Watcher("/calico/v1", &watcherOpts)
+		watcher := syn.keysAPI.Watcher(keyPrefix+"/calico/v1", &watcherOpts)
 	watchLoop: // We'll stay in this poll loop unless we drop out of sync.
 		for {
 			// Wait for the next event from the watcher.
@@ -318,13 +319,13 @@ func (syn *etcdSyncer) watchEtcd(watcherUpdateC chan<- interface{}) {
 			if actionType == actionSetOrUpdate {
 				watcherUpdateC <- watcherUpdate{kv: kvPair{
 					modifiedIndex: node.ModifiedIndex,
-					key:           resp.Node.Key,
+					key:           strings.TrimPrefix(resp.Node.Key, keyPrefix),
 					value:         node.Value,
 				}}
 			} else {
 				watcherUpdateC <- watcherDeletion{
 					modifiedIndex: node.ModifiedIndex,
-					key:           resp.Node.Key,
+					key:           strings.TrimPrefix(resp.Node.Key, keyPrefix),
 				}
 			}
 
@@ -373,7 +374,7 @@ func (syn *etcdSyncer) pollClusterID(interval time.Duration) {
 	lastSeenClusterID := ""
 	opts := client.GetOptions{}
 	for {
-		resp, err := syn.keysAPI.Get(context.Background(), "/calico/", &opts)
+		resp, err := syn.keysAPI.Get(context.Background(), keyPrefix+"/calico/", &opts)
 		if err != nil {
 			log.WithError(err).Warn("Failed to poll etcd server cluster ID")
 		} else {

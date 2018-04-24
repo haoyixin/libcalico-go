@@ -16,6 +16,7 @@ package etcd
 
 import (
 	goerrors "errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -39,6 +40,7 @@ var (
 	etcdListOpts         = &etcd.GetOptions{Quorum: true, Recursive: true, Sort: true}
 	etcdListChildrenOpts = &etcd.GetOptions{Quorum: true, Recursive: false, Sort: true}
 	clientTimeout        = 30 * time.Second
+	keyPrefix            = "/qihoo.cloud/network"
 )
 
 type EtcdClient struct {
@@ -89,6 +91,13 @@ func NewEtcdClient(config *v1.EtcdConfig) (*EtcdClient, error) {
 		return nil, err
 	}
 	keys := etcd.NewKeysAPI(client)
+
+	if config.EtcdKeyPrefix != "" {
+		if !strings.HasPrefix(config.EtcdKeyPrefix, "/") || strings.HasSuffix(config.EtcdKeyPrefix, "/") {
+			return nil, fmt.Errorf("key prefix must start with '/' and end without '/'")
+		}
+		keyPrefix = config.EtcdKeyPrefix
+	}
 
 	return &EtcdClient{etcdClient: client, etcdKeysAPI: keys}, nil
 }
@@ -179,6 +188,7 @@ func (c *EtcdClient) Delete(d *model.KVPair) error {
 	if err != nil {
 		return err
 	}
+	key = keyPrefix + key
 	etcdDeleteOpts := &etcd.DeleteOptions{Recursive: true}
 	if len(d.Revision) != 0 {
 		var err error
@@ -199,6 +209,7 @@ func (c *EtcdClient) Delete(d *model.KVPair) error {
 		return err
 	}
 	for _, parent := range parents {
+		parent = keyPrefix + parent
 		log.Debugf("Delete empty Key: %s", parent)
 		_, err2 := c.etcdKeysAPI.Delete(context.Background(), parent, etcdDeleteEmptyOpts)
 		if err2 != nil {
@@ -216,6 +227,7 @@ func (c *EtcdClient) Get(k model.Key) (*model.KVPair, error) {
 	if err != nil {
 		return nil, err
 	}
+	key = keyPrefix + key
 
 	log.Debugf("Get Key: %s", key)
 	r, err := c.etcdKeysAPI.Get(context.Background(), key, etcdGetOpts)
@@ -263,7 +275,7 @@ func (c *EtcdClient) List(l model.ListInterface) ([]*model.KVPair, error) {
 func (c *EtcdClient) defaultList(l model.ListInterface) ([]*model.KVPair, error) {
 	// To list entries, we enumerate from the common root based on the supplied
 	// IDs, and then filter the results.
-	key := model.ListOptionsToDefaultPathRoot(l)
+	key := keyPrefix + model.ListOptionsToDefaultPathRoot(l)
 	log.Debugf("List Key: %s", key)
 	results, err := c.etcdKeysAPI.Get(context.Background(), key, etcdListOpts)
 	if err != nil {
@@ -301,6 +313,7 @@ func (c *EtcdClient) set(d *model.KVPair, options *etcd.SetOptions) (*model.KVPa
 		logCxt.WithError(err).Error("Failed to convert key to path")
 		return nil, err
 	}
+	key = keyPrefix + key
 	bytes, err := model.SerializeValue(d)
 	if err != nil {
 		logCxt.WithError(err).Error("Failed to serialize value")
@@ -340,7 +353,7 @@ func filterEtcdList(n *etcd.Node, l model.ListInterface) []*model.KVPair {
 		for _, node := range n.Nodes {
 			kvs = append(kvs, filterEtcdList(node, l)...)
 		}
-	} else if k := l.KeyFromDefaultPath(n.Key); k != nil {
+	} else if k := l.KeyFromDefaultPath(strings.TrimPrefix(n.Key, keyPrefix)); k != nil {
 		if v, err := model.ParseValue(k, []byte(n.Value)); err == nil {
 			kv := &model.KVPair{Key: k, Value: v, Revision: strconv.FormatUint(n.ModifiedIndex, 10)}
 			kvs = append(kvs, kv)
@@ -391,6 +404,7 @@ func (c *EtcdClient) getHostMetadataFromDirectory(k model.Key) (*model.KVPair, e
 	if err != nil {
 		return nil, err
 	}
+	key = keyPrefix + key
 	if _, err := c.etcdKeysAPI.Get(context.Background(), key, etcdGetOpts); err != nil {
 		return nil, convertEtcdError(err, k)
 	}
@@ -463,7 +477,7 @@ func (c *EtcdClient) listHostMetadata(l model.HostMetadataListOptions) ([]*model
 // ensureDirectory makes sure the specified directory exists in etcd.
 func (c *EtcdClient) ensureDirectory(dir string) error {
 	log.WithField("Dir", dir).Debug("Ensure directory exists")
-	_, err := c.etcdKeysAPI.Set(context.Background(), dir, "", etcdCreateDirOpts)
+	_, err := c.etcdKeysAPI.Set(context.Background(), keyPrefix+dir, "", etcdCreateDirOpts)
 	if err != nil {
 		err = convertEtcdError(err, nil)
 		if _, ok := err.(errors.ErrorResourceAlreadyExists); !ok {
